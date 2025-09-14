@@ -11,6 +11,7 @@ import Circle from "../tools/Circle";
 import Eraser from "../tools/Eraser";
 import Line from "../tools/Line";
 import Message from "./Message";
+import { axiosClient } from "../services";
 
 const Canvas = observer(() => {
   const canvasRef = useRef();
@@ -21,30 +22,35 @@ const Canvas = observer(() => {
   const [message, setMessage] = useState("")
 
   useEffect(() => {
+    localStorage.getItem('username') && canvasState.setUsername(localStorage.getItem('username'))
     if (canvasState.username) {
       canvasState.setCanvas(canvasRef.current);
-      axios.get(`http://localhost:5000/image?id=${params.id}`).then((res) => {
-        if (res.data) {
-          const img = new Image();
-          let ctx = canvasRef.current.getContext("2d");
-          img.src = res.data;
-          img.onload = () => {
-            ctx.clearRect(
-              0,
-              0,
-              canvasRef.current.width,
-              canvasRef.current.height
-            );
-            ctx.drawImage(
-              img,
-              0,
-              0,
-              canvasRef.current.width,
-              canvasRef.current.height
-            );
-            ctx.stroke();
-          };
-        }
+      axiosClient.get(`/image?id=${params.id}`).then((res) => {
+        try{
+          if (res.data) {
+            const img = new Image();
+            let ctx = canvasRef.current.getContext("2d");
+            img.src = res.data;
+            img.onload = () => {
+              ctx.clearRect(
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height
+              );
+              ctx.drawImage(
+                img,
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height
+              );
+              ctx.stroke();
+            };
+          } 
+        } catch(e){
+          return
+        } 
       });
     } else if (!canvasState.username) {
       navigate("/auth");
@@ -68,7 +74,6 @@ const Canvas = observer(() => {
       };
       socket.onmessage = (event) => {
         let msg = JSON.parse(event.data);
-
         switch (msg.method) {
           case "connection":
             console.log(`Пользователь ${msg.username} подключился`);
@@ -89,21 +94,7 @@ const Canvas = observer(() => {
         setOnline(msg.online)
       };
     }
-    getOnlineHandler();
-  }, [canvasState.username]);
-
-  const setOnlineHandler = async (method) => {
-    const currOnline = await axios.post("http://localhost:5000/online", {
-      method: method,
-      id: params.id
-    })
-    setOnline(currOnline.data.online)
-  };
-
-  const getOnlineHandler = async () => {
-    const currOnline = await axios.get(`http://localhost:5000/online?id=${params.id}`);
-    setOnline(currOnline.data.online);
-  };
+  }, []);
 
   const chatHandler = (msg) => {
     setChat(prev => [...prev, {username: msg.username, content: msg.content}])
@@ -188,8 +179,8 @@ const Canvas = observer(() => {
     canvasState.pushToUndo(canvasRef.current.toDataURL());
   };
 
-  const mouseUpHandler = () => {
-    axios.post(`http://localhost:5000/image?id=${params.id}`, {
+  const mouseUpHandler = async () => {
+    await axiosClient.post(`/image?id=${params.id}`, {
       img: canvasRef.current.toDataURL(),
     });
   };

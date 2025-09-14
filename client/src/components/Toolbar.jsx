@@ -7,8 +7,10 @@ import Rect from "../tools/Rect";
 import Eraser from "../tools/Eraser";
 import Circle from "../tools/Circle";
 import Line from "../tools/Line";
+import { useParams } from "react-router-dom";
 
 const Toolbar = () => {
+  const params = useParams();
   const download = () => {
     const dataUrl = canvasState.canvas.toDataURL();
     const a = document.createElement("a");
@@ -88,11 +90,11 @@ const Toolbar = () => {
       />
       <button
         className={`${s.toolbar__btn} ${s.undo}`}
-        onClick={() => canvasState.undo()}
+        onClick={() => canvasState.undo(params.id)}
       />
       <button
         className={`${s.toolbar__btn} ${s.redo}`}
-        onClick={() => canvasState.redo()}
+        onClick={() => canvasState.redo(params.id)}
       />
       <button
         className={`${s.toolbar__btn} ${s.save}`}

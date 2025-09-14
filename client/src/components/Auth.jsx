@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import s from '../styles/auth.module.scss'
 import { useNavigate } from "react-router-dom";
 import canvasState from "../store/canvasState";
+import axios from "axios";
 
 const Auth = () => {
   const [activeBlock, setActiveBlock] = useState("login");
@@ -14,10 +15,25 @@ const Auth = () => {
     if(username.length >= 3 && password.length >= 5) {
       if(activeBlock === "login" || activeBlock === "register" && rePassword === password){        
         canvasState.setUsername(username)
-        navigate("/")
-        setUsername("")
-        setPassword("")
-        setRePassword("")
+        const response = await axios.post(`http://localhost:5000/auth/${activeBlock === "login" ? 'login' : 'register'}`, {
+          username: username,
+          password: password
+        })
+        if(response.data.tokens){
+          localStorage.setItem('username', username)
+          localStorage.setItem('accessToken', response.data.tokens.accessToken)
+          localStorage.setItem('refreshToken', response.data.tokens.refreshToken)
+          setUsername("")
+          setPassword("")
+          setRePassword("")
+          navigate("/")
+        } else if(response.data.message === "User with that username is already exists"){
+          alert("Пользователь с таким ником уже существует")
+        } else if(response.data.message === "Неверный пароль"){
+          alert("Неверный пароль")
+        } else {
+          alert("Пользователь не найден")
+        }
       } else {
         alert("Пароли должны быть одинаковыми")
       }

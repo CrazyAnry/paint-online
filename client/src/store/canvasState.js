@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { axiosClient } from "../services";
 
 class CanvasState {
   canvas = null;
@@ -36,7 +37,7 @@ class CanvasState {
     this.redolist.push(data);
   }
 
-  undo() {
+  async undo(params) {
     let ctx = this.canvas.getContext("2d");
     if (this.undolist.length > 0) {
       let dataUrl = this.undolist.pop();
@@ -59,10 +60,13 @@ class CanvasState {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       };
+      await axiosClient.post(`/image?id=${params}`, {
+            img: dataUrl,
+      });
     }
   }
 
-  redo() {
+  async redo(params) {
     let ctx = this.canvas.getContext("2d");
     if (this.redolist.length > 0) {
       let dataUrl = this.redolist.pop();
@@ -85,6 +89,9 @@ class CanvasState {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       };
+      await axiosClient.post(`/image?id=${params}`, {
+            img: dataUrl,
+      });
     }
   }
 

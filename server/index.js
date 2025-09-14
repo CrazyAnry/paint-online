@@ -9,12 +9,11 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { jwtAuth } = require("./middlewares");
-require('dotenv').config();
+require("dotenv").config();
 
 const PORT = process.env.PORT || 5000;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "access-secret";
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "refresh-secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "refresh-secret";
 
 app.use(cors());
 app.use(express.json());
@@ -35,33 +34,10 @@ client.connect((err) => {
   }
 });
 
-app.ws("/", jwtAuth, (ws, req) => {
+app.ws("/", (ws, req) => {
   ws.on("message", async (msg) => {
     msg = JSON.parse(msg);
-    switch (msg.method) {
-      case "connection":
-        connectionHandler(ws, msg);
-        break;
-      case "draw":
-        connectionHandler(ws, msg);
-        break;
-      case "pictureActions":
-        connectionHandler(ws, msg);
-        break;
-      case "chatMessage":
-        connectionHandler(ws, msg);
-        break;
-      case "close_connection":
-        await fetch("http://localhost:5000/online", {
-          method: "POST",
-          body: {
-            id: msg.id,
-            method: "disconnect",
-          },
-        });
-        connectionHandler(ws, msg);
-        break;
-    }
+    broadcastConnection(ws, msg);
   });
 });
 
@@ -95,67 +71,81 @@ app.get("/image", jwtAuth, (req, res) => {
   }
 });
 
-app.post("auth/register", async (req, res) => {
+app.post("/auth/register", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, "asjuduu32");
-    await client.query(
-      "INSERT INTO users (username, password) VALUES ($1, $2)",
-      [username, hashedPassword]
+    const findedUser = await client.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
     );
+    if (findedUser.rowCount === 0) {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      await client.query(
+        "INSERT INTO users (username, password) VALUES ($1, $2)",
+        [username, hashedPassword]
+      );
 
-    const accessToken = jwt.sign(
-      {
-        userId: currentUser.rows[1].id,
-        username: user.username,
-      },
-      ACCESS_TOKEN_SECRET,
-      { expiresIn: "7h" }
-    );
+      const currentUser = await client.query(
+        "SELECT * FROM users WHERE username = $1",
+        [username]
+      );
 
-    const refreshToken = jwt.sign(
-      {
-        userId: currentUser.rows[1].id,
-        username: user.username,
-      },
-      REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
+      const accessToken = jwt.sign(
+        {
+          userId: currentUser.rows[0].id,
+          username,
+        },
+        ACCESS_TOKEN_SECRET,
+        { expiresIn: "7h" }
+      );
 
-    res.send({
-      message: "Registration successful",
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
-      user: {
-        id: currentUser.rows[1].id,
-        username,
-      },
+      const refreshToken = jwt.sign(
+        {
+          userId: currentUser.rows[0].id,
+          username,
+        },
+        REFRESH_TOKEN_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      return res.send({
+        message: "Registration successful",
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+        user: {
+          id: currentUser.rows[0].id,
+          username,
+        },
+      });
+    }
+    return res.send({
+      message: "User with that username is already exists",
     });
   } catch (e) {
     console.log(e);
   }
 });
 
-app.get("auth/login", async (req, res) => {
+app.post("/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const currentUser = client.query(
+    const currentUser = await client.query(
       "SELECT * FROM users WHERE username = $1",
       [username]
     );
     if (currentUser) {
       const isPasswordValid = await bcrypt.compare(
         password,
-        currentUser.rows[1].password
+        currentUser.rows[0].password
       );
 
       if (isPasswordValid) {
         const accessToken = jwt.sign(
           {
-            userId: currentUser.rows[1].id,
-            username: user.username,
+            userId: currentUser.rows[0].id,
+            username,
           },
           ACCESS_TOKEN_SECRET,
           { expiresIn: "7h" }
@@ -163,37 +153,35 @@ app.get("auth/login", async (req, res) => {
 
         const refreshToken = jwt.sign(
           {
-            userId: currentUser.rows[1].id,
-            username: user.username,
+            userId: currentUser.rows[0].id,
+            username,
           },
           REFRESH_TOKEN_SECRET,
           { expiresIn: "7d" }
         );
 
-        res.send({
+        return res.send({
           message: "Login successful",
           tokens: {
             accessToken,
             refreshToken,
           },
           user: {
-            id: currentUser.rows[1].id,
+            id: currentUser.rows[0].id,
             username,
           },
         });
-        return;
       }
-      res.send({ message: "Неверный пароль" });
-      return;
+      return res.send({ message: "Неверный пароль" });
     }
-    res.send({ message: "Пользователь не найден" });
+    return res.send({ message: "Пользователь не найден" });
   } catch (e) {
     console.log(e);
   }
 });
 
 app.post("/refresh", (req, res) => {
-  try{
+  try {
     const { refreshToken } = req.body;
     const validToken = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
     const accessToken = jwt.sign(
@@ -207,25 +195,26 @@ app.post("/refresh", (req, res) => {
     res.send({
       tokens: {
         refreshToken,
-        accessToken
-      }
-    })
-  } catch(e) {
-    console.log("Ошибка верификации " + e.message)
+        accessToken,
+      },
+    });
+  } catch (e) {
+    console.log("Ошибка верификации " + e.message);
   }
 });
 
-const connectionHandler = (ws, msg) => {
+const broadcastConnection = (ws, msg) => {
   ws.id = msg.id;
-  broadcastConnection(msg);
-};
-
-const broadcastConnection = (msg) => {
   let online = 0;
-  aWss.clients.forEach((client) => client.id === msg.id && online++);
   aWss.clients.forEach((client) => {
     if (client.id === msg.id) {
-      client.send(JSON.stringify({ ...msg, online }));
+      online++;
+    }
+  });
+
+  aWss.clients.forEach((client) => {
+    if (client.id === msg.id) {
+      client.send(JSON.stringify({ ...msg, online}));
     }
   });
 };
