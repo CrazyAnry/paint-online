@@ -22,6 +22,7 @@ const HomePage = () => {
         <button className={s.submit} onClick={() => navigate(`/${room}`)}> Подтвердить </button>
         </div>
         <div className={s.block}>
+          <div onClick={() => navigate('/profile')} className={s.profile}></div>
           <h3>Создать новую комнату</h3>
           <button
             className={s.submit}

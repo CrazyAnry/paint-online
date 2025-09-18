@@ -34,7 +34,7 @@ export default class Circle extends Tool {
             x: this.startX,
             y: this.startY,
             height: this.height,
-            fillStyle: this.ctx.fillStyle,
+            width: this.width,
             strokeStyle: this.ctx.strokeStyle,
             lineWidth: this.ctx.lineWidth,
           },
@@ -46,12 +46,14 @@ export default class Circle extends Tool {
   mouseMoveHandler(e) {
     if (this.mouseDown) {
       let currentY = e.pageY - e.target.offsetTop;
+      let currentX = e.pageX - e.target.offsetLeft;
       this.height = currentY - this.startY;
-      this.draw(this.startX, this.startY, this.height);
+      this.width = currentX - this.startX
+      this.draw(this.startX, this.startY, this.height, this.width);
     }
   }
 
-  draw(x, y, h) {
+  draw(x, y, h, w) {
     const img = new Image();
     img.src = this.saved;
     img.onload = () => {
@@ -59,27 +61,23 @@ export default class Circle extends Tool {
       this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       this.ctx.beginPath();
 
-      h <= 0
+      (w + h) / 4 <= 0
         ? this.ctx.arc(x, y, 1, 0, Math.PI * 2)
-        : this.ctx.arc(x, y, h, 0, Math.PI * 2);
+        : this.ctx.arc(x, y, (w + h) / 4, 0, Math.PI * 2);
 
-      this.ctx.fill();
       this.ctx.stroke();
     };
   }
 
-  static staticDraw(ctx, x, y, h, fillStyle, strokeStyle, lineWidth) {
-    ctx.fillStyle = fillStyle;
+  static staticDraw(ctx, x, y, h, w, strokeStyle, lineWidth) {
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = lineWidth;
     ctx.beginPath();
-    h <= 0
+    (w + h) / 4 <= 0
       ? ctx.arc(x, y, 1, 0, Math.PI * 2)
-      : ctx.arc(x, y, h, 0, Math.PI * 2);
+      : ctx.arc(x, y, (w + h) / 4, 0, Math.PI * 2);
 
-    ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = toolState.inputFillColor;
     ctx.strokeStyle = toolState.inputStrokeColor;
     ctx.lineWidth = toolState.inputLineWidth;
   }

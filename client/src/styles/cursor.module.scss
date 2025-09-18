@@ -1,0 +1,27 @@
+.cursor {
+  width: 0;
+  height: 0;
+  border: 0 solid transparent;
+  border-right-width: 10px;
+  border-left-width: 10px;
+  transform: rotateZ(-25deg);
+  will-change: 'transform';
+}
+
+.username {
+  color: rgb(0, 255, 128);
+  margin: 0;
+  font-size: 0.8em;
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+}
+
+.main {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -100%);
+}

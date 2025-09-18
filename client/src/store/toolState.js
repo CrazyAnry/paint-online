@@ -5,9 +5,14 @@ class ToolState {
     inputFillColor = "#000000"
     inputStrokeColor = "#000000"
     inputLineWidth = 1
+    setInputColorFunc = null
 
     constructor() {
         makeAutoObservable(this)
+    }
+
+    setInputColor(func){
+        this.setInputColorFunc = func
     }
 
     setTool(tool) {

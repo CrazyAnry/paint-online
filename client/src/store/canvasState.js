@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { axiosClient } from "../services";
+import axios from "axios";
 
 class CanvasState {
   canvas = null;
@@ -8,9 +9,14 @@ class CanvasState {
   username = "";
   socket = null;
   sessionId = null;
+  cursorColor = null;
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  setCursorColor(color) {
+    this.cursorColor = color;
   }
 
   setCanvas(canvas) {
@@ -29,12 +35,30 @@ class CanvasState {
     this.sessionId = sessionId;
   }
 
-  pushToUndo(data) {
+  async pushToUndo(data) {
     this.undolist.push(data);
+    await axiosClient.post(`/history`, {
+      roomId: this.sessionId,
+      undo: this.undolist,
+      redo: this.redolist,
+    });
   }
 
-  pushToRedo(data) {
+  async pushToRedo(data) {
     this.redolist.push(data);
+    await axiosClient.post(`/history`, {
+      roomId: this.sessionId,
+      undo: this.undolist,
+      redo: this.redolist,
+    });
+  }
+
+  setRedo(data) {
+    this.redolist = [...data];
+  }
+
+  setUndo(data) {
+    this.undolist = [...data];
   }
 
   async undo(params) {
@@ -61,7 +85,12 @@ class CanvasState {
         ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       };
       await axiosClient.post(`/image?id=${params}`, {
-            img: dataUrl,
+        img: dataUrl,
+      });
+      await axiosClient.post(`/history`, {
+        roomId: params,
+        undo: this.undolist,
+        redo: this.redolist,
       });
     }
   }
@@ -90,7 +119,12 @@ class CanvasState {
         ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       };
       await axiosClient.post(`/image?id=${params}`, {
-            img: dataUrl,
+        img: dataUrl,
+      });
+      await axiosClient.post(`/history`, {
+        roomId: params,
+        undo: this.undolist,
+        redo: this.redolist,
       });
     }
   }
@@ -109,8 +143,8 @@ class CanvasState {
 
   wsRedo(redoArr, undoArr, image) {
     let ctx = this.canvas.getContext("2d");
-    this.redolist = redoArr.map((el) => el);
-    this.undolist = undoArr.map((el) => el);
+    this.redolist = [...redoArr];
+    this.undolist = [...undoArr];
     let img = new Image();
     img.src = image;
     img.onload = () => {

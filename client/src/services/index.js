@@ -26,10 +26,10 @@ axiosClient.interceptors.response.use(
     if (error.response.status == "401") {
         try{
             const refreshToken = localStorage.getItem("refreshToken");
-            const response = axios.post("/refresh", {
+            const response = await axios.post("http://localhost:5000/refresh", {
               refreshToken,
             });
-            localStorage.setItem("accessToken", response.data.accessToken);
+            localStorage.setItem("accessToken", response.data.tokens.accessToken);
         } catch(e){
             localStorage.removeItem("accessToken")
             localStorage.removeItem("refreshToken")

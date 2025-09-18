@@ -30,12 +30,11 @@ export default class Eraser extends Brush {
   }
 
   static staticDraw(ctx, x, y, lineWidth) {
+    ctx.globalCompositeOperation = 'destination-out';
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = "white";
     ctx.lineTo(x, y);
     ctx.stroke();
-    ctx.fillStyle = toolState.inputFillColor;
-    ctx.strokeStyle = toolState.inputStrokeColor;
     ctx.lineWidth = toolState.inputLineWidth;
+    ctx.globalCompositeOperation = 'source-over';
   }
 }

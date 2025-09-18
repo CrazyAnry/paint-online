@@ -4,7 +4,10 @@ import s from "../styles/canvas.module.scss";
 const Message = ({username, content}) => {
   return (
     <div className={s.message}>
-      <p><p className={s.username}>{username}:</p> <p className={s.content}>{content}</p></p>
+      <p className={s.username}>{username}:</p> 
+      <div className={s.content}>
+        <p>{content}</p>
+      </div>
     </div>
   );
 }

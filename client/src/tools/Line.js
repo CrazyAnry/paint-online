@@ -15,7 +15,7 @@ export default class Line extends Tool {
   }
 
   mouseUpHandler(e) {
-    if(this.mouseDown){
+    if (this.mouseDown) {
       this.mouseDown = false;
       this.socket.send(
         JSON.stringify({

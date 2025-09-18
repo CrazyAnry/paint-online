@@ -6,6 +6,7 @@ import Canvas from "./components/Canvas";
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from "./components/HomePage";
 import Auth from "./components/Auth";
+import { Profile } from "./components/Profile";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             </>
           }/>
         <Route path="/auth" element={<Auth/>}/>
+        <Route path="/profile" element={<Profile/>}/>
         <Route path="/" element={<HomePage/>}/>
         </Routes>
         

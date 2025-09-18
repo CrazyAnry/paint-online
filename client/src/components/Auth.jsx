@@ -23,6 +23,7 @@ const Auth = () => {
           localStorage.setItem('username', username)
           localStorage.setItem('accessToken', response.data.tokens.accessToken)
           localStorage.setItem('refreshToken', response.data.tokens.refreshToken)
+          localStorage.setItem('cursorColor', "#000")
           setUsername("")
           setPassword("")
           setRePassword("")
