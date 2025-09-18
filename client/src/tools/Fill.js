@@ -123,7 +123,7 @@ export default class Fill extends Tool {
       Math.abs(color1.r - color2.r) <= tolerance &&
       Math.abs(color1.g - color2.g) <= tolerance &&
       Math.abs(color1.b - color2.b) <= tolerance &&
-      Math.abs(color1.a - color2.a) <= 170
+      Math.abs(color1.a - color2.a) <= 100
     );
   }
 
@@ -205,7 +205,7 @@ export default class Fill extends Tool {
       Math.abs(color1.r - color2.r) <= tolerance &&
       Math.abs(color1.g - color2.g) <= tolerance &&
       Math.abs(color1.b - color2.b) <= tolerance &&
-      Math.abs(color1.a - color2.a) <= 170
+      Math.abs(color1.a - color2.a) <= 100
     );
   }
 }
