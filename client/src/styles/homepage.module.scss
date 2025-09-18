@@ -123,36 +123,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  .main {
-    padding: 15px;
-    justify-content: flex-start;
-    padding-top: 60px;
-  }
-
-  .brand {
-    font-size: 2.2rem;
-    margin-bottom: 20px;
-  }
-
-  .form {
-    width: 100%;
-    height: auto;
-    flex-direction: column;
-    max-width: 400px;
-  }
-
-  .block {
-    width: 100%;
-    padding: 25px 20px;
-
-    &:first-child {
-      border-right: none;
-      border-bottom: 1px solid rgba(76, 201, 240, 0.2);
-    }
-  }
-}
-
 .decorative {
   position: absolute;
   pointer-events: none;

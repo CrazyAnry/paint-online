@@ -133,7 +133,6 @@ h3 {
   }
 }
 
-// Декоративные элементы
 .decorative {
   position: absolute;
   pointer-events: none;
@@ -160,7 +159,6 @@ h3 {
   }
 }
 
-// Анимация появления
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -176,30 +174,6 @@ h3 {
   animation: fadeIn 0.8s ease-out;
 }
 
-// Адаптивность для мобильных устройств
-@media (max-width: 600px) {
-  .main {
-    width: 90%;
-    height: auto;
-    min-height: 380px;
-    margin-top: 15vh;
-  }
-  
-  .block {
-    padding: 25px 20px;
-    gap: 12px;
-  }
-  
-  .inp, .btn {
-    width: 90%;
-  }
-  
-  h3 {
-    font-size: 1.5rem;
-  }
-}
-
-// Дополнительные стили для состояний
 .loading {
   .btn {
     position: relative;
